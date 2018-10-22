@@ -14,8 +14,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.bar.dummy.DummyContent;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,9 +72,68 @@ public class ItemListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
+        System.out.println("**********BEFORE getSchedule()");
+        //handle this accurately
+        JSONArray workshopsArray = getSchedule();  //this gets null
+        System.out.println("workshopsArray is: " + workshopsArray);
+        System.out.println("********AFTER getSchedule()");
+
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
+        //het berel anpayman
         setupRecyclerView((RecyclerView) recyclerView);
+    }
+
+    public JSONArray getSchedule() {
+        //final List<WorkShop>[] result = new List<WorkShop>[1];
+        //List<WorkShop> result;
+        //final WorkShop[][] result = new WorkShop[1][1];
+        String url = "http://api.barcamp.am/schedule";
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        final JSONArray[] result = new JSONArray[1];
+
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                List<WorkShop> workShopList = new ArrayList<>();
+                try {
+                    for (int i = 0; i < response.length(); i++) {
+                        JSONObject workshop = response.getJSONObject(i);
+
+                        String id = workshop.getString("id");
+                        String room = workshop.getString("room");
+
+                        JSONObject english = workshop.getJSONObject("en");
+                        String speaker = (!english.getString("speaker").equals("null")) ? english.getString("speaker") : "No Speaker Specified";
+                        String topic = english.getString("topic");
+
+                        //het berel ete petq lini stugel
+                        System.out.println("id: " + id + " room: " + room + " speaker: " + speaker + " topic: " + topic);
+
+                        workShopList.add(new WorkShop(speaker, topic));
+                    }
+                    result[0] = response; //so we return the raw jsonarray, and will make from it workshop obejcts (the for loop here) outside of this method
+                    System.out.println("result[0] is: " + result[0]);
+                    //result[0][1] = workShopList.toArray();
+                    //result[0] = workShopList;
+                    //setupRecyclerView((RecyclerView) view);
+                   // return workShopList; //the wokrshoplist should be returned from getschedule
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println("error is: " + error);
+                    }
+                });
+
+        queue.add(jsonArrayRequest);
+        //return workShopList;
+        return result[0];
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -74,6 +145,7 @@ public class ItemListActivity extends AppCompatActivity {
 
         private final ItemListActivity mParentActivity;
         private final List<DummyContent.DummyItem> mValues;
+        //private final List<WorkShop> workshops;
         private final boolean mTwoPane;
         private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
             @Override
@@ -101,6 +173,7 @@ public class ItemListActivity extends AppCompatActivity {
                                       List<DummyContent.DummyItem> items,
                                       boolean twoPane) {
             mValues = items;
+           // workshops = workShops;
             mParentActivity = parent;
             mTwoPane = twoPane;
         }

@@ -1,5 +1,9 @@
 package com.example.bar.dummy;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,11 +48,18 @@ public class DummyContent {
     private static String makeDetails(int position) {
         StringBuilder builder = new StringBuilder();
         builder.append("Details of Workshop: ").append(position);
+        builder.append(System.getProperty("line.separator"));
+        builder.append("Speaker: ");
+        builder.append(System.getProperty("line.separator"));
+        builder.append("Topic: ");
+        builder.append(System.getProperty("line.separator"));
+
 //        for (int i = 0; i < position; i++) {
 //            builder.append("\nMore details information here.");
 //        }
         return builder.toString();
     }
+
 
     /**
      * A dummy item representing a piece of content.
@@ -56,7 +67,15 @@ public class DummyContent {
     public static class DummyItem {
         public final String id;
         public final String content;
-        public final String details;
+        public final String details; //this should be the Workshop Object
+        public Workshop workshop;
+
+        public DummyItem(String id, String content, String details, Workshop workshop) {
+            this.id = id;
+            this.content = content;
+            this.details = details;
+            this.workshop = workshop;
+        }
 
         public DummyItem(String id, String content, String details) {
             this.id = id;
@@ -67,6 +86,17 @@ public class DummyContent {
         @Override
         public String toString() {
             return content;
+        }
+    }
+
+    //the actual Workshop object that should be in each DummyItem, to show the workshop info
+    public static class Workshop {
+        public String speaker;
+        public String topic;
+
+        public Workshop(String speaker, String topic) {
+            this.speaker = speaker;
+            this.topic = topic;
         }
     }
 }
