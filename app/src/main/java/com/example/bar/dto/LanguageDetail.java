@@ -1,14 +1,12 @@
-package com.example.bar;
+package com.example.bar.dto;
 
-public class WorkShop {
+public class LanguageDetail {
     private String speaker;
     private String topic;
 
-    public WorkShop() {
+    public LanguageDetail() {}
 
-    }
-
-    public WorkShop(String speaker, String topic) {
+    public LanguageDetail(String speaker, String topic) {
         this.speaker = speaker;
         this.topic = topic;
     }
@@ -27,10 +25,5 @@ public class WorkShop {
 
     public void setTopic(String topic) {
         this.topic = topic;
-    }
-
-    @Override
-    public String toString() {
-        return "speaker: " +  this.speaker + " topic: " + this.topic;
     }
 }

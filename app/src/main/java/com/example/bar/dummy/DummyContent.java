@@ -49,9 +49,9 @@ public class DummyContent {
         StringBuilder builder = new StringBuilder();
         builder.append("Details of Workshop: ").append(position);
         builder.append(System.getProperty("line.separator"));
-        builder.append("Speaker: ");
+        builder.append("Speaker: Philipp Krenn"); //change this after using the items retrieved from the API
         builder.append(System.getProperty("line.separator"));
-        builder.append("Topic: ");
+        builder.append("Topic: Full Text Search Explained");
         builder.append(System.getProperty("line.separator"));
 
 //        for (int i = 0; i < position; i++) {

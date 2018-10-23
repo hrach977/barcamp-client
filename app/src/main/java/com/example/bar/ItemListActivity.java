@@ -21,7 +21,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.bar.dto.ScheduleElement;
 import com.example.bar.dummy.DummyContent;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +31,11 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * An activity representing a list of Items. This activity
@@ -39,7 +46,7 @@ import java.util.List;
  * item details side-by-side using two vertical panes.
  */
 public class ItemListActivity extends AppCompatActivity {
-
+public static List<WorkShop> WORK_SHOP_LIST;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -72,70 +79,132 @@ public class ItemListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        System.out.println("**********BEFORE getSchedule()");
-        //handle this accurately
-        JSONArray workshopsArray = getSchedule();  //this gets null
-        System.out.println("workshopsArray is: " + workshopsArray);
-        System.out.println("********AFTER getSchedule()");
+        //Gson gson = new Gson();
+        final List<WorkShop> workShopList = new ArrayList<>();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://api.barcamp.am/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ScheduleService service = retrofit.create(ScheduleService.class);
+
+        Call<List<ScheduleElement>> scheduleCall = service.getSchedule();
+
+        //final retrofit2.Response<List<ScheduleElement>> schedule = null;
+
+        scheduleCall.enqueue(new Callback<List<ScheduleElement>>() {
+            @Override
+            public void onResponse(Call<List<ScheduleElement>> call, retrofit2.Response<List<ScheduleElement>> response) {
+                if (response.isSuccessful()) {
+                    //System.out.println(response.body());
+                    for(ScheduleElement scheduleElement: response.body()) {
+                        String speaker = (scheduleElement.getEn().getSpeaker()!=null) ? scheduleElement.getEn().getSpeaker() : "No Speaker Specified";
+                        workShopList.add(new WorkShop(speaker, scheduleElement.getEn().getTopic()));
+                    }
+                    System.out.println(workShopList);
+//                    WORK_SHOP_LIST = workShopList;
+//                    View recyclerView = findViewById(R.id.item_list);
+//                    assert recyclerView != null;
+//                    //het berel anpayman
+//                    setupRecyclerView((RecyclerView) recyclerView);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ScheduleElement>> call, Throwable t) {
+
+            }
+        });
 
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
         //het berel anpayman
         setupRecyclerView((RecyclerView) recyclerView);
+
+      //  (RecyclerView) recyclerView.setAdapter()
     }
 
-    public JSONArray getSchedule() {
-        //final List<WorkShop>[] result = new List<WorkShop>[1];
-        //List<WorkShop> result;
-        //final WorkShop[][] result = new WorkShop[1][1];
-        String url = "http://api.barcamp.am/schedule";
-        RequestQueue queue = Volley.newRequestQueue(this);
+//    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+//        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, WORK_SHOP_LIST, mTwoPane));
+//    }
+//
+//    public static class SimpleItemRecyclerViewAdapter
+//            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+//
+//        private final ItemListActivity mParentActivity;
+//        private final List<WorkShop> mValues;
+//        //private final List<WorkShop> workshops;
+//        private final boolean mTwoPane;
+//        private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                //DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
+//                WorkShop item = (WorkShop) view.getTag();
+//                if (mTwoPane) {
+//                    Bundle arguments = new Bundle();
+//                    arguments.putString("item_id", item.getSpeaker());
+//                    ItemDetailFragment fragment = new ItemDetailFragment();
+//                    fragment.setArguments(arguments);
+//                    mParentActivity.getSupportFragmentManager().beginTransaction()
+//                            .replace(R.id.item_detail_container, fragment)
+//                            .commit();
+//                } else {
+//                    Context context = view.getContext();
+//                    Intent intent = new Intent(context, ItemDetailActivity.class);
+//                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, item.getTopic());
+//
+//                    context.startActivity(intent);
+//                }
+//            }
+//        };
+//
+//        SimpleItemRecyclerViewAdapter(ItemListActivity parent,
+//                                      List<WorkShop> items,
+//                                      boolean twoPane) {
+//            mValues = items;
+//            // workshops = workShops;
+//            mParentActivity = parent;
+//            mTwoPane = twoPane;
+//        }
+//
+//        @Override
+//        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//            View view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.item_list_content, parent, false);
+//            return new ViewHolder(view);
+//        }
+//
+//        @Override
+//        public void onBindViewHolder(final ViewHolder holder, int position) {
+//           // holder.mIdView.setText(mValues.get(position).id);
+//           // holder.mContentView.setText(mValues.get(position).content);
+//
+//            holder.itemView.setTag(mValues.get(position));
+//            holder.itemView.setOnClickListener(mOnClickListener);
+//        }
+//
+//        @Override
+//        public int getItemCount() {
+//            return mValues.size();
+//        }
+//
+//        class ViewHolder extends RecyclerView.ViewHolder {
+//            final TextView mIdView;
+//            final TextView mContentView;
+//
+//            ViewHolder(View view) {
+//                super(view);
+//                mIdView = (TextView) view.findViewById(R.id.id_text);
+//                mContentView = (TextView) view.findViewById(R.id.content);
+//            }
+//        }
+//    }
 
-        final JSONArray[] result = new JSONArray[1];
 
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                List<WorkShop> workShopList = new ArrayList<>();
-                try {
-                    for (int i = 0; i < response.length(); i++) {
-                        JSONObject workshop = response.getJSONObject(i);
 
-                        String id = workshop.getString("id");
-                        String room = workshop.getString("room");
 
-                        JSONObject english = workshop.getJSONObject("en");
-                        String speaker = (!english.getString("speaker").equals("null")) ? english.getString("speaker") : "No Speaker Specified";
-                        String topic = english.getString("topic");
-
-                        //het berel ete petq lini stugel
-                        System.out.println("id: " + id + " room: " + room + " speaker: " + speaker + " topic: " + topic);
-
-                        workShopList.add(new WorkShop(speaker, topic));
-                    }
-                    result[0] = response; //so we return the raw jsonarray, and will make from it workshop obejcts (the for loop here) outside of this method
-                    System.out.println("result[0] is: " + result[0]);
-                    //result[0][1] = workShopList.toArray();
-                    //result[0] = workShopList;
-                    //setupRecyclerView((RecyclerView) view);
-                   // return workShopList; //the wokrshoplist should be returned from getschedule
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        System.out.println("error is: " + error);
-                    }
-                });
-
-        queue.add(jsonArrayRequest);
-        //return workShopList;
-        return result[0];
-    }
-
+//het berel es sax porceluc heto
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
     }
